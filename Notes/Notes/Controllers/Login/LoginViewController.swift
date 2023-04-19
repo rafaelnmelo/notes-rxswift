@@ -13,6 +13,7 @@ class LoginViewController: UIViewController {
     
     var bag = DisposeBag()
     private let viewModel = LoginViewModel()
+    var coordinator: AppCoordinator?
     
     lazy var textFieldEmail: UITextField = {
         let textfield = UITextField()
@@ -34,7 +35,7 @@ class LoginViewController: UIViewController {
     
     lazy var btnLogin: UIButton = {
         let btn = UIButton()
-        btn.setTitle("login", for: .normal)
+        btn.setTitle("Login", for: .normal)
         btn.setTitleColor(.black, for: .normal)
         btn.setTitleColor(.black.withAlphaComponent(0.3), for: .highlighted)
         btn.translatesAutoresizingMaskIntoConstraints = false
@@ -50,7 +51,10 @@ class LoginViewController: UIViewController {
     }
     
     @objc func onTapBtnLogin() {
-        
+        DispatchQueue.main.async {
+            let vc = ViewController(nibName: nil, bundle: nil)
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
     func setupUI() {

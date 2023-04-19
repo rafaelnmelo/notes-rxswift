@@ -19,11 +19,11 @@ class ViewModel {
             guard let data = data else{return}
             do {
                 let responseData = try JSONDecoder().decode([User].self, from: data)
-                let sectionUser = SectionModel(model: "First", items: [User(userID: 0, id: 1, title: "Rafan", body: "Um arraso")])
+                let sectionUser = SectionModel(model: "First", items: [User(userID: 0, id: 1, title: "Notas", body: "Minhas notas")])
                 let secondSection = SectionModel(model: "Second", items: responseData)
                 self.users.on(.next([sectionUser,secondSection]))
             } catch  {
-                print(error.localizedDescription)
+                self.users.onError(error)
             }
         }
         task.resume()
@@ -32,7 +32,7 @@ class ViewModel {
     func addUser(user: User) {
         guard var sections = try? users.value() else {return}
         var currentSection = sections[0]
-        currentSection.items.append(User(userID: 5, id: 25, title: "New data", body: "This is the new data"))
+        currentSection.items.append(User(userID: 5, id: 25, title: "Nova nota", body: "Esta é sua nota nota"))
         sections[0] = currentSection
         self.users.onNext(sections)
     }

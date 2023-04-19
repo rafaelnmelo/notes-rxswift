@@ -14,6 +14,7 @@ class ViewController: UIViewController {
 
     private var viewModel = ViewModel()
     private var bag = DisposeBag()
+    weak var coordinator: AppCoordinator?
     
     lazy var tableView: UITableView = {
         let tv = UITableView(frame: self.view.frame, style: .insetGrouped)
@@ -24,16 +25,21 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = "Notes"
-        let add = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(onTapAdd))
-        self.navigationItem.rightBarButtonItem = add
-        self.view.addSubview(tableView)
+        setupUI()
         viewModel.fetchUsers()
         bindTableView()
     }
     
+    func setupUI() {
+        self.title = "Notes"
+        self.navigationItem.hidesBackButton = true
+        let add = UIBarButtonItem(title: "Add", style: .done, target: self, action: #selector(onTapAdd))
+        self.navigationItem.rightBarButtonItem = add
+        self.view.addSubview(tableView)
+    }
+    
     @objc func onTapAdd() {
-        let user = User(userID: 25, id: 2505, title: "Rafan", body: "um arraso")
+        let user = User(userID: 25, id: 2505, title: "Lembrete", body: "Minha nota")
         viewModel.addUser(user: user)
     }
     
@@ -57,14 +63,18 @@ class ViewController: UIViewController {
         }).disposed(by: bag)
         
         tableView.rx.itemSelected.subscribe(onNext: { indexPath in
-            let alert = UIAlertController(title: "Note", message: "Edit note", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Nota", message: "Editar nota", preferredStyle: .alert)
             alert.addTextField { textField in}
 
-            let action = UIAlertAction(title: "Edit", style: .default) { action in
+            let edit = UIAlertAction(title: "Editar", style: .default) { action in
                 let textField = alert.textFields![0] as UITextField
                 self.viewModel.editUser(title: textField.text ?? "", indexPath: indexPath)
             }
-            alert.addAction(action)
+            
+            let cancel = UIAlertAction(title: "Cancelar", style: .cancel, handler: nil)
+            
+            alert.addAction(cancel)
+            alert.addAction(edit)
 
             DispatchQueue.main.async {
                 self.present(alert, animated: true, completion: nil)
