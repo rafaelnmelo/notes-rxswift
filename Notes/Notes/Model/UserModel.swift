@@ -9,7 +9,7 @@ import Foundation
 
 struct User: Codable {
     let userID, id: Int
-    let title, body: String
+    var title, body: String
     
     enum CodingKeys: String, CodingKey {
         case userID = "userId"
