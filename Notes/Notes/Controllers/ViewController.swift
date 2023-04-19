@@ -38,31 +38,37 @@ class ViewController: UIViewController {
     
     func bindTableView() {
         tableView.rx.setDelegate(self).disposed(by: bag)
-        viewModel.users.bind(to: tableView.rx.items(cellIdentifier: "UserTableViewCell", cellType: UserTableViewCell.self)) { (row,item,cell) in
+
+        let dataSource = RxTableViewSectionedReloadDataSource<SectionModel<String,User>> { _,tableView,indexPath, item in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "UserTableViewCell", for: indexPath) as! UserTableViewCell
             cell.textLabel?.text = item.title
             cell.detailTextLabel?.text = "\(item.id)"
-        }.disposed(by: bag)
+            return cell
+        } titleForHeaderInSection: { dataSource, sectionIndex in
+            dataSource[sectionIndex].model
+        }
+        
+        self.viewModel.users.bind(to: self.tableView.rx.items(dataSource: dataSource)).disposed(by: bag)
+        
+        tableView.rx.itemDeleted.subscribe(onNext: { [weak self] indexPath in
+            guard let self = self else {return}
+            self.viewModel.deleteUser(indexPath: indexPath)
+        }).disposed(by: bag)
         
         tableView.rx.itemSelected.subscribe(onNext: { indexPath in
             let alert = UIAlertController(title: "Note", message: "Edit note", preferredStyle: .alert)
             alert.addTextField { textField in}
-            
+
             let action = UIAlertAction(title: "Edit", style: .default) { action in
                 let textField = alert.textFields![0] as UITextField
-                self.viewModel.editUser(title: textField.text ?? "", index: indexPath.row)
+                self.viewModel.editUser(title: textField.text ?? "", indexPath: indexPath)
             }
             alert.addAction(action)
-            
+
             DispatchQueue.main.async {
                 self.present(alert, animated: true, completion: nil)
             }
         }).disposed(by: bag)
-        
-        tableView.rx.itemDeleted.subscribe(onNext: { [weak self] indexPath in
-            guard let self = self else {return}
-            self.viewModel.deleteUser(index: indexPath.row)
-        }).disposed(by: bag)
-
     }
 
 
