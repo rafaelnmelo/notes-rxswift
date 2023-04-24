@@ -35,12 +35,13 @@ class LoginViewController: UIViewController {
     
     lazy var btnLogin: UIButton = {
         let btn = UIButton()
-        btn.setTitle("Login", for: .normal)
-        btn.setTitleColor(.black, for: .normal)
-        btn.setTitleColor(.black.withAlphaComponent(0.3), for: .highlighted)
+        btn.setTitle("Entrar", for: .normal)
+        btn.setTitleColor(.lightGray, for: .normal)
+        btn.setTitleColor(.white, for: .highlighted)
         btn.translatesAutoresizingMaskIntoConstraints = false
-        btn.backgroundColor = .systemRed
+        btn.backgroundColor = .systemGray
         btn.addTarget(self, action: #selector(onTapBtnLogin), for: .touchUpInside)
+        btn.layer.cornerRadius = 4
         return btn
     }()
     
@@ -79,12 +80,17 @@ class LoginViewController: UIViewController {
     }
     
     private func createObservables() {
+        /// Atrelando valor de email do objeto da viewModel no textField
         textFieldEmail.rx.text.map({$0 ?? ""}).bind(to: viewModel.email).disposed(by: bag)
+        /// Atrelando valor de password do objeto da viewModel no textField
         textFieldPassword.rx.text.map({$0 ?? ""}).bind(to: viewModel.password).disposed(by: bag)
-        
+        /// Checando variavel para habilitar ou não botão botão
         viewModel.isValidInput.bind(to: btnLogin.rx.isEnabled).disposed(by: bag)
+        /// Inscrição nos eventos da variavel...
         viewModel.isValidInput.subscribe(onNext: { [weak self] isValid in
-            self?.btnLogin.backgroundColor = isValid ? .systemBlue : .systemRed
+            /// ... para alterar cor do botão
+            self?.btnLogin.backgroundColor = isValid ? .systemBlue : .systemGray
+            self?.btnLogin.isHighlighted = true
         }).disposed(by: bag)
     }
 }

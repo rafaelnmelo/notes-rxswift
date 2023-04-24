@@ -43,9 +43,27 @@ class ViewController: UIViewController {
         viewModel.addUser(user: user)
     }
     
-    func bindTableView() {
-        tableView.rx.setDelegate(self).disposed(by: bag)
+    func createEditAlert(indexPath: IndexPath) -> UIAlertController {
+        let alert = UIAlertController(title: "Nota", message: "Editar nota", preferredStyle: .alert)
+        alert.addTextField { textField in}
 
+        let edit = UIAlertAction(title: "Editar", style: .default) { action in
+            let textField = alert.textFields![0] as UITextField
+            self.viewModel.editUser(title: textField.text ?? "", indexPath: indexPath)
+        }
+        
+        let cancel = UIAlertAction(title: "Cancelar", style: .cancel, handler: nil)
+        
+        alert.addAction(cancel)
+        alert.addAction(edit)
+        
+        return alert
+    }
+    
+    func bindTableView() {
+        /// Set delegate ao rx
+        tableView.rx.setDelegate(self).disposed(by: bag)
+        /// Usando Rx para manejo do datasource
         let dataSource = RxTableViewSectionedReloadDataSource<SectionModel<String,User>> { _,tableView,indexPath, item in
             let cell = tableView.dequeueReusableCell(withIdentifier: "UserTableViewCell", for: indexPath) as! UserTableViewCell
             cell.textLabel?.text = item.title
@@ -54,27 +72,18 @@ class ViewController: UIViewController {
         } titleForHeaderInSection: { dataSource, sectionIndex in
             dataSource[sectionIndex].model
         }
-        
+        /// Atrelando itens da tableview ao conjunto de objetos da viewModel
         self.viewModel.users.bind(to: self.tableView.rx.items(dataSource: dataSource)).disposed(by: bag)
-        
+        /// Monitoramento de ação de exclusão de itens na tableview
         tableView.rx.itemDeleted.subscribe(onNext: { [weak self] indexPath in
+            /// Ações quando houver um evento de exclusão
             guard let self = self else {return}
             self.viewModel.deleteUser(indexPath: indexPath)
         }).disposed(by: bag)
-        
+        /// Monitoramento de ação de seleção de itens na tableview
         tableView.rx.itemSelected.subscribe(onNext: { indexPath in
-            let alert = UIAlertController(title: "Nota", message: "Editar nota", preferredStyle: .alert)
-            alert.addTextField { textField in}
-
-            let edit = UIAlertAction(title: "Editar", style: .default) { action in
-                let textField = alert.textFields![0] as UITextField
-                self.viewModel.editUser(title: textField.text ?? "", indexPath: indexPath)
-            }
-            
-            let cancel = UIAlertAction(title: "Cancelar", style: .cancel, handler: nil)
-            
-            alert.addAction(cancel)
-            alert.addAction(edit)
+            /// Ações quando houver uma seleção
+            let alert = self.createEditAlert(indexPath: indexPath)
 
             DispatchQueue.main.async {
                 self.present(alert, animated: true, completion: nil)
